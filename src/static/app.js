@@ -29,19 +29,19 @@ document.addEventListener("DOMContentLoaded", () => {
         <p>${info.description}</p>
         <p><strong>Schedule:</strong> ${info.schedule}</p>
         <p><strong>Availability:</strong> ${spotsLeft} spots left</p>
-        <div class="chips-container"></div>
+        <div class="participants-container"></div>
       `;
 
       // Add participant chips with remove icon
-      const chipsContainer = card.querySelector('.chips-container');
+      const participantsContainer = card.querySelector('.participants-container');
       info.participants.forEach(email => {
-        const chip = document.createElement('span');
-        chip.className = 'chip';
-        chip.textContent = email;
+        const participantChip = document.createElement('span');
+        participantChip.className = 'participant-chip';
+        participantChip.textContent = email;
 
         // Remove icon
         const removeIcon = document.createElement('span');
-        removeIcon.className = 'remove-icon';
+        removeIcon.className = 'participant-remove-icon';
         removeIcon.innerHTML = '&times;';
         removeIcon.title = 'Remove participant';
         removeIcon.style.marginLeft = '8px';
@@ -49,8 +49,8 @@ document.addEventListener("DOMContentLoaded", () => {
         removeIcon.onclick = async () => {
           await unregisterParticipant(name, email);
         };
-        chip.appendChild(removeIcon);
-        chipsContainer.appendChild(chip);
+        participantChip.appendChild(removeIcon);
+        participantsContainer.appendChild(participantChip);
       });
 
       activitiesList.appendChild(card);

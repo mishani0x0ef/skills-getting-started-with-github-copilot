@@ -143,14 +143,14 @@ footer {
   color: #666;
 }
 
-.chips-container {
+.participants-container {
   margin-top: 10px;
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
 }
 
-.chip {
+.participant-chip {
   display: inline-block;
   background-color: #e3f2fd;
   color: #1565c0;
@@ -163,7 +163,7 @@ footer {
   position: relative;
 }
 
-  .remove-icon {
+  .participant-remove-icon {
     color: #c00;
     font-weight: bold;
     margin-left: 8px;
@@ -172,10 +172,10 @@ footer {
     vertical-align: middle;
     transition: color 0.2s;
   }
-  .remove-icon:hover {
+  .participant-remove-icon:hover {
     color: #f00;
   }
 
-.chip:hover {
+.participant-chip:hover {
   background-color: #bbdefb;
 }
