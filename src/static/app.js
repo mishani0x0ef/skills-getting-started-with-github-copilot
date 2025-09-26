@@ -8,37 +8,95 @@ document.addEventListener("DOMContentLoaded", () => {
   async function fetchActivities() {
     try {
       const response = await fetch("/activities");
-      const activities = await response.json();
-
-      // Clear loading message
-      activitiesList.innerHTML = "";
-
-      // Populate activities list
-      Object.entries(activities).forEach(([name, details]) => {
-        const activityCard = document.createElement("div");
-        activityCard.className = "activity-card";
-
-        const spotsLeft = details.max_participants - details.participants.length;
-
-        activityCard.innerHTML = `
-          <h4>${name}</h4>
-          <p>${details.description}</p>
-          <p><strong>Schedule:</strong> ${details.schedule}</p>
-          <p><strong>Availability:</strong> ${spotsLeft} spots left</p>
-        `;
-
-        activitiesList.appendChild(activityCard);
-
-        // Add option to select dropdown
-        const option = document.createElement("option");
-        option.value = name;
-        option.textContent = name;
-        activitySelect.appendChild(option);
-      });
+      return await response.json();
     } catch (error) {
       activitiesList.innerHTML = "<p>Failed to load activities. Please try again later.</p>";
       console.error("Error fetching activities:", error);
     }
+  }
+
+  function renderActivities(activities) {
+    activitiesList.innerHTML = "";
+
+    Object.entries(activities).forEach(([name, info]) => {
+      const card = document.createElement("div");
+      card.className = "activity-card";
+
+      const spotsLeft = info.max_participants - info.participants.length;
+
+      card.innerHTML = `
+        <h4>${name}</h4>
+        <p>${info.description}</p>
+        <p><strong>Schedule:</strong> ${info.schedule}</p>
+        <p><strong>Availability:</strong> ${spotsLeft} spots left</p>
+        <div class="participants-container"></div>
+      `;
+
+      // Add participant chips with remove icon
+      const participantsContainer = card.querySelector('.participants-container');
+      info.participants.forEach(email => {
+        const participantChip = document.createElement('span');
+        participantChip.className = 'participant-chip';
+        participantChip.textContent = email;
+
+        // Remove icon
+        const removeIcon = document.createElement('span');
+        removeIcon.className = 'participant-remove-icon';
+        removeIcon.innerHTML = '&times;';
+        removeIcon.title = 'Remove participant';
+        removeIcon.style.marginLeft = '8px';
+        removeIcon.style.cursor = 'pointer';
+        removeIcon.onclick = async () => {
+          await unregisterParticipant(name, email);
+        };
+        participantChip.appendChild(removeIcon);
+        participantsContainer.appendChild(participantChip);
+      });
+
+      activitiesList.appendChild(card);
+    });
+  // Unregister function
+  async function unregisterParticipant(activity, email) {
+    try {
+      const response = await fetch(
+        `/activities/${encodeURIComponent(activity)}/unregister?email=${encodeURIComponent(email)}`,
+        {
+          method: "POST",
+        }
+      );
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.detail || "Unregister failed");
+      }
+      const result = await response.json();
+      messageDiv.className = "message success";
+      messageDiv.textContent = result.message;
+      await refreshActivitiesUI();
+    } catch (error) {
+      messageDiv.className = "message error";
+      messageDiv.textContent = error.message;
+    }
+    messageDiv.classList.remove("hidden");
+    setTimeout(() => {
+      messageDiv.classList.add("hidden");
+    }, 5000);
+  }
+  }
+
+  async function populateActivitiesSelect(activities) {
+    activitySelect.innerHTML = '<option value="">-- Select an activity --</option>';
+    Object.keys(activities).forEach(name => {
+      const option = document.createElement("option");
+      option.value = name;
+      option.textContent = name;
+      activitySelect.appendChild(option);
+    });
+  }
+
+  async function refreshActivitiesUI() {
+    const activities = await fetchActivities();
+    renderActivities(activities);
+    populateActivitiesSelect(activities);
   }
 
   // Handle form submission
@@ -48,6 +106,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const email = document.getElementById("email").value;
     const activity = document.getElementById("activity").value;
 
+    messageDiv.className = "message hidden";
+    messageDiv.textContent = "";
+
+    if (!email || !activity) return;
+
     try {
       const response = await fetch(
         `/activities/${encodeURIComponent(activity)}/signup?email=${encodeURIComponent(email)}`,
@@ -56,31 +119,33 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       );
 
-      const result = await response.json();
-
-      if (response.ok) {
-        messageDiv.textContent = result.message;
-        messageDiv.className = "success";
-        signupForm.reset();
-      } else {
-        messageDiv.textContent = result.detail || "An error occurred";
-        messageDiv.className = "error";
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.detail || "Signup failed");
       }
 
-      messageDiv.classList.remove("hidden");
+      const result = await response.json();
+      messageDiv.className = "message success";
+      messageDiv.textContent = result.message;
 
-      // Hide message after 5 seconds
-      setTimeout(() => {
-        messageDiv.classList.add("hidden");
-      }, 5000);
+      // Refresh activities list to show updated participants
+      await refreshActivitiesUI();
+
+      // Optionally, reset form
+      signupForm.reset();
     } catch (error) {
-      messageDiv.textContent = "Failed to sign up. Please try again.";
-      messageDiv.className = "error";
-      messageDiv.classList.remove("hidden");
-      console.error("Error signing up:", error);
+      messageDiv.className = "message error";
+      messageDiv.textContent = error.message;
     }
+
+    messageDiv.classList.remove("hidden");
+
+    // Hide message after 5 seconds
+    setTimeout(() => {
+      messageDiv.classList.add("hidden");
+    }, 5000);
   });
 
   // Initialize app
-  fetchActivities();
+  refreshActivitiesUI();
 });

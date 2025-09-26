@@ -142,3 +142,40 @@ footer {
   padding: 20px;
   color: #666;
 }
+
+.participants-container {
+  margin-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.participant-chip {
+  display: inline-block;
+  background-color: #e3f2fd;
+  color: #1565c0;
+  border-radius: 16px;
+  padding: 4px 12px;
+  font-size: 14px;
+  border: 1px solid #90caf9;
+  margin-bottom: 4px;
+  transition: background-color 0.2s;
+  position: relative;
+}
+
+  .participant-remove-icon {
+    color: #c00;
+    font-weight: bold;
+    margin-left: 8px;
+    cursor: pointer;
+    font-size: 1.1em;
+    vertical-align: middle;
+    transition: color 0.2s;
+  }
+  .participant-remove-icon:hover {
+    color: #f00;
+  }
+
+.participant-chip:hover {
+  background-color: #bbdefb;
+}
